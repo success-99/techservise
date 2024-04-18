@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
@@ -6,30 +7,56 @@ from .serializers import RegisterSerializer, LoginSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import generics, permissions, viewsets
 
 
-class RegisterApiView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(data={'msg': 'success register'}, status=201)
+class RegisterApiView(viewsets.GenericViewSet):
+    queryset = CustomUser.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
-    # permission_classes = [IsAuthenticated]  # Kimdir kirishi mumkin
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
-        user = CustomUser.objects.filter(email=email).first()
-        token, created = Token.objects.get_or_create(user=user)
-        response_data = {'token': token.key}
-        if created:
-            response_data['message'] = 'Foydalanuvchi muvaffaqiyatli login qildi.'
-        else:
-            response_data['message'] = 'Foydalanuvchi allaqachon tizimga kirdi.'
-        return Response(response_data, status=status.HTTP_200_OK)
+
+class LoginView(generics.CreateAPIView):
+    serializer_class = LoginSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            # Ma'lumotlarni olish
+            email = serializer.validated_data.get('email')
+
+            if email:
+                user = CustomUser.objects.filter(email=email).first()
+                if user:
+                    token, created = Token.objects.get_or_create(user=user)
+                    response_data = {'token': token.key}
+                    if created:
+                        response_data['message'] = 'Foydalanuvchi muvaffaqiyatli login qildi.'
+                    else:
+                        response_data['message'] = 'Foydalanuvchi allaqachon tizimga kirgan.'
+                    return Response(response_data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Foydalanuvchi topilmadi.'}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({'error': 'Email kiritilmadi.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class LogoutView(APIView):
