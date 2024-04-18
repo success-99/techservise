@@ -25,8 +25,7 @@ class RegisterApiView(viewsets.GenericViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-class LoginView(generics.CreateAPIView):
+class LoginApiView(generics.CreateAPIView):
     serializer_class = LoginSerializer
     permission_classes = (permissions.AllowAny,)
 
@@ -57,20 +56,33 @@ class LoginView(generics.CreateAPIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class LogoutApiView(generics.DestroyAPIView):
+    serializer_class = LoginSerializer
+    permission_classes = (permissions.AllowAny,)
 
-
-class LogoutView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
+    def delete(self, request, *args, **kwargs):
         try:
-            request.user.auth_token.delete()
-            return Response({'detail': 'Foydalanuvchi sessiyasidan muvaffaqiyatli chiqarildi.'},
-                            status=status.HTTP_200_OK)
-        except:
-            return Response({'error': 'Foydalanuvchi uchun token topilmadi. Foydalanuvchi allaqachon chiqib ketgan.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            if request.user.is_authenticated:  # Foydalanuvchi autentifikatsiyadan o'tkazilganligini tekshirish
+                request.user.auth_token.delete()
+                return Response({'detail': 'Foydalanuvchi muvaffaqiyatli logout qildi.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'detail': "Foydalanuvchi avtorizatsiyadan o'tkazilmaganligi sababli sessiyadan chiqarish mumkin emas."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class LogoutView(APIView):
+#     authentication_classes = [TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request, format=None):
+#         try:
+#             request.user.auth_token.delete()
+#             return Response({'detail': 'Foydalanuvchi sessiyasidan muvaffaqiyatli chiqarildi.'},
+#                             status=status.HTTP_200_OK)
+#         except:
+#             return Response({'error': 'Foydalanuvchi uchun token topilmadi. Foydalanuvchi allaqachon chiqib ketgan.'},
+#                             status=status.HTTP_400_BAD_REQUEST)
 
 
 class HomePage(APIView):

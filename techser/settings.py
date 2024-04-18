@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'background_task',
     'drf_yasg',
+    "corsheaders",
 
     'users',
     'excelapp',
