@@ -1,0 +1,3 @@
+
+
+# Funksiya chaqiriladi
