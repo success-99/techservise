@@ -29,7 +29,7 @@ def save_uploaded_file(upload_dir, uploaded_file):
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
