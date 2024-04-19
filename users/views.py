@@ -64,8 +64,8 @@ class LoginApiView(generics.CreateAPIView):
 
 
 class LogoutApiView(generics.DestroyAPIView):
-    serializer_class = LoginSerializer
-    permission_classes = (permissions.AllowAny,)
+    # serializer_class = LoginSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -76,20 +76,6 @@ class LogoutApiView(generics.DestroyAPIView):
                 return Response({'detail': "Foydalanuvchi avtorizatsiyadan o'tkazilmaganligi sababli sessiyadan chiqarish mumkin emas."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class LogoutView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-#
-#     def get(self, request, format=None):
-#         try:
-#             request.user.auth_token.delete()
-#             return Response({'detail': 'Foydalanuvchi sessiyasidan muvaffaqiyatli chiqarildi.'},
-#                             status=status.HTTP_200_OK)
-#         except:
-#             return Response({'error': 'Foydalanuvchi uchun token topilmadi. Foydalanuvchi allaqachon chiqib ketgan.'},
-#                             status=status.HTTP_400_BAD_REQUEST)
 
 
 class HomePage(APIView):

@@ -42,7 +42,7 @@ class GenerateContracts(generics.CreateAPIView):
         # Fayllarni va direktoriyalarni aniqlash
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         word_template_path = base_dir / "amaliyot11.docx"
-        output_dir = base_dir / f"{request.user.id}"
+        output_dir = base_dir / f"{request.user}" # yuklanadigan papka
         upload_dir = base_dir / "UPLOAD"  # UPLOAD katalogi
 
         # Faylni saqlash
@@ -59,7 +59,7 @@ class GenerateContracts(generics.CreateAPIView):
             output_path = output_dir / f"{record['Talabaning_F_I_Sh']}-contract.docx"
             doc.save(output_path)
 
-        return Response({'success': 'Contracts generated successfully', 'output_papka': str(output_dir)},
+        return Response({'success': 'Fayl yuborildi', 'output_papka': str(output_dir)},
                         status=status.HTTP_200_OK)
 
 
@@ -73,7 +73,7 @@ class DownloadOutputView(APIView):
 
         # Check if OUTPUT directory exists
         if not output_dir.exists():
-            return Response({'error': 'Ma\'lumotlar topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'papka topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if OUTPUT directory is empty
         if not os.listdir(output_dir):
