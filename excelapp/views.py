@@ -125,8 +125,17 @@ from .serializers import FileUploadSerializer
 import os
 from pathlib import Path
 
+# def save_uploaded_file(upload_dir, uploaded_file):
+#     file_path = os.path.join(upload_dir, uploaded_file.name)
+#     with open(file_path, 'wb') as new_file:
+#         for chunk in uploaded_file.chunks():
+#             new_file.write(chunk)
+#     return file_path
+
+
 def save_uploaded_file(upload_dir, uploaded_file):
-    file_path = os.path.join(upload_dir, uploaded_file.name)
+    upload_dir.mkdir(parents=True, exist_ok=True)  # UPLOAD katalogini yaratish
+    file_path = upload_dir / uploaded_file.name
     with open(file_path, 'wb') as new_file:
         for chunk in uploaded_file.chunks():
             new_file.write(chunk)
