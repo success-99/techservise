@@ -29,7 +29,7 @@ def save_uploaded_file(upload_dir, uploaded_file):
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAdminUser,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,8 +42,8 @@ class GenerateContracts(generics.CreateAPIView):
         # Fayllarni va direktoriyalarni aniqlash
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         word_template_path = base_dir / "amaliyot11.docx"
-        output_dir = base_dir / f"{request.user}" # yuklanadigan papka
-        upload_dir = base_dir / "UPLOAD"  # UPLOAD katalogi
+        output_dir = base_dir / f"user_id_{request.user.id}" # yuklanadigan papka
+        upload_dir = base_dir / "UPLOAD_excel"  # UPLOAD katalogi
 
         # Faylni saqlash
         saved_file_path = save_uploaded_file(upload_dir, excel_file)
@@ -68,16 +68,16 @@ class DownloadOutputView(APIView):
 
     def get(self, request):
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
-        output_dir = base_dir / f"{request.user.id}"
-        zip_file_path = base_dir / f"{request.user.id}.zip"
+        output_dir = base_dir / f"user_id_{request.user.id}"
+        zip_file_path = base_dir / f"user_id_{request.user.id}.zip"
 
         # Check if OUTPUT directory exists
         if not output_dir.exists():
-            return Response({'error': 'papka topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': f'user_id_{request.user.id} topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if OUTPUT directory is empty
         if not os.listdir(output_dir):
-            return Response({'error': f'{request.user.id} katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'error': f'yuklanadigan katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
 
         # Create ZIP archive of OUTPUT directory
         shutil.make_archive(output_dir, 'zip', output_dir)

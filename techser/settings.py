@@ -49,17 +49,14 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.JSONParser',
     ),
-    'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny',
-
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
 
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication'
-    ],
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser'
+    ),
 }
 # TOKEN_TTL = datetime.timedelta(minutes=1)
 
@@ -77,7 +74,6 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
-
 
 ROOT_URLCONF = 'techser.urls'
 
@@ -99,7 +95,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'techser.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -109,7 +104,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -129,7 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Tashkent'
@@ -137,7 +130,6 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 
 USE_TZ = True
-
 
 STATIC_URL = 'static/'
 MEDIA_ROOT = 'media'
