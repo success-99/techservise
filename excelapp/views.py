@@ -29,7 +29,7 @@ def save_uploaded_file(upload_dir, uploaded_file):
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,7 +42,7 @@ class GenerateContracts(generics.CreateAPIView):
         # Fayllarni va direktoriyalarni aniqlash
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         word_template_path = base_dir / "amaliyot11.docx"
-        output_dir = base_dir / "OUTPUT"
+        output_dir = base_dir / f"{request.user.id}"
         upload_dir = base_dir / "UPLOAD"  # UPLOAD katalogi
 
         # Faylni saqlash
@@ -64,10 +64,12 @@ class GenerateContracts(generics.CreateAPIView):
 
 
 class DownloadOutputView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
     def get(self, request):
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
-        output_dir = base_dir / "OUTPUT"
-        zip_file_path = base_dir / "OUTPUT.zip"
+        output_dir = base_dir / f"{request.user.id}"
+        zip_file_path = base_dir / f"{request.user.id}.zip"
 
         # Check if OUTPUT directory exists
         if not output_dir.exists():
@@ -75,7 +77,7 @@ class DownloadOutputView(APIView):
 
         # Check if OUTPUT directory is empty
         if not os.listdir(output_dir):
-            return Response({'error': 'OUTPUT katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'error': f'{request.user.id} katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
 
         # Create ZIP archive of OUTPUT directory
         shutil.make_archive(output_dir, 'zip', output_dir)
