@@ -10,6 +10,12 @@ import os
 from .serializers import FileUploadSerializer
 import os
 from pathlib import Path
+import excel2json
+
+
+def count_student():
+    excel2json.convert_from_file('records.xlsx')
+
 
 
 def save_uploaded_file(upload_dir, uploaded_file):
@@ -19,6 +25,7 @@ def save_uploaded_file(upload_dir, uploaded_file):
         for chunk in uploaded_file.chunks():
             new_file.write(chunk)
     return file_path
+
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
@@ -56,7 +63,7 @@ class GenerateContracts(generics.CreateAPIView):
                         status=status.HTTP_200_OK)
 
 
-class DownloadOutput(APIView):
+class DownloadOutputView(APIView):
     def get(self, request):
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         output_dir = base_dir / "OUTPUT"
