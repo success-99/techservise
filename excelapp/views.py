@@ -20,7 +20,6 @@ def count_student():
     excel2json.convert_from_file('records.xlsx')
 
 
-
 def save_uploaded_file(upload_dir, uploaded_file):
     upload_dir.mkdir(parents=True, exist_ok=True)  # UPLOAD katalogini yaratish
     file_path = upload_dir / uploaded_file.name
@@ -37,7 +36,7 @@ class GenerateContracts(generics.CreateAPIView):
 
     # authentication_classes = (TokenAuthentication,)
 
-    @swagger_auto_schema(operation_description='Upload file...',)
+    @swagger_auto_schema(operation_description='Upload file...', )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,7 +48,10 @@ class GenerateContracts(generics.CreateAPIView):
         # Fayllarni va direktoriyalarni aniqlash
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         word_template_path = base_dir / "amaliyot11.docx"
-        output_dir = base_dir / f"papka_{request.user.id}" # yuklanadigan papka
+        if f'papka_{request.user.id}':
+            shutil.rmtree(f'papka_{request.user.id}')
+
+        output_dir = base_dir / f"papka_{request.user.id}"  # yuklanadigan papka
         upload_dir = base_dir / "UPLOAD_excel"  # UPLOAD katalogi
 
         # Faylni saqlash
@@ -65,6 +67,8 @@ class GenerateContracts(generics.CreateAPIView):
             doc.render(record)
             output_path = output_dir / f"{record['Talabaning_F_I_Sh']}-amaliyot.docx"
             doc.save(output_path)
+        os.remove(saved_file_path)
+        # shutil.rmtree(output_dir)
 
         return Response({'success': 'Fayl yuborildi', 'yuklanadigan papka joyi': str(output_dir)},
                         status=status.HTTP_200_OK)
@@ -97,8 +101,6 @@ class GenerateContracts(generics.CreateAPIView):
 #         except FileNotFoundError:
 #             return Response({'error': 'ZIP arxiv topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 #
-
-
 
 
 # class DownloadOutputView(APIView):
@@ -161,5 +163,5 @@ class DownloadOutputView(APIView):
 
         # Remove the ZIP file after preparing the response
         os.remove(zip_file_path)
-
+        # shutil.rmtree(output_dir)
         return response
