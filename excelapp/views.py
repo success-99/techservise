@@ -1,7 +1,9 @@
 from django.http import FileResponse
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics, permissions, parsers
 from pathlib import Path
 import pandas as pd
 from docxtpl import DocxTemplate
@@ -29,8 +31,12 @@ def save_uploaded_file(upload_dir, uploaded_file):
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (permissions.AllowAny,)
+    parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.FileUploadParser)
 
+    # authentication_classes = (TokenAuthentication,)
+
+    @swagger_auto_schema(operation_description='Upload file...',)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -42,7 +48,7 @@ class GenerateContracts(generics.CreateAPIView):
         # Fayllarni va direktoriyalarni aniqlash
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         word_template_path = base_dir / "amaliyot11.docx"
-        output_dir = base_dir / f"user_id_{request.user.id}" # yuklanadigan papka
+        output_dir = base_dir / f"papka_{request.user.id}" # yuklanadigan papka
         upload_dir = base_dir / "UPLOAD_excel"  # UPLOAD katalogi
 
         # Faylni saqlash
@@ -56,24 +62,25 @@ class GenerateContracts(generics.CreateAPIView):
         for record in df.to_dict(orient="records"):
             doc = DocxTemplate(word_template_path)
             doc.render(record)
-            output_path = output_dir / f"{record['Talabaning_F_I_Sh']}-contract.docx"
+            output_path = output_dir / f"{record['Talabaning_F_I_Sh']}-amaliyot.docx"
             doc.save(output_path)
 
-        return Response({'success': 'Fayl yuborildi', 'output_papka': str(output_dir)},
+        return Response({'success': 'Fayl yuborildi', 'yuklanadigan papka joyi': str(output_dir)},
                         status=status.HTTP_200_OK)
 
 
 class DownloadOutputView(APIView):
     permission_classes = (permissions.AllowAny,)
+    # authentication_classes = (TokenAuthentication,)
 
     def get(self, request):
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
-        output_dir = base_dir / f"user_id_{request.user.id}"
-        zip_file_path = base_dir / f"user_id_{request.user.id}.zip"
+        output_dir = base_dir / f"papka_{request.user.id}"
+        zip_file_path = base_dir / f"papka_{request.user.id}.zip"
 
         # Check if OUTPUT directory exists
         if not output_dir.exists():
-            return Response({'error': f'user_id_{request.user.id} topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': f'papka_{request.user.id} papkasi topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if OUTPUT directory is empty
         if not os.listdir(output_dir):

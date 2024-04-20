@@ -8,6 +8,8 @@ router.register('register', RegisterApiView, basename='register')
 urlpatterns = [
     # path('register/', RegisterApiView.as_view(), name='register'),
     path('home/', HomePage.as_view(), name='home'),
+    # path('token-auth/', CustomAuthToken.as_view()),
+
     path('user-list/', RegisterApiViewList.as_view(), name='list'),
 
     path('login/', LoginApiView.as_view(), name='login'),
@@ -16,3 +18,4 @@ urlpatterns = [
     path('', include(router.urls)),
 
 ]
+

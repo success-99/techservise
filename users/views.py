@@ -1,13 +1,27 @@
-from django.contrib.auth import authenticate
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
 from users.models import CustomUser
 from .serializers import RegisterSerializer, LoginSerializer
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics, permissions, viewsets
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+
+
+# class CustomAuthToken(ObtainAuthToken):
+#
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(data=request.data,
+#                                            context={'request': request})
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data['user']
+#         token, created = Token.objects.get_or_create(user=user)
+#         return Response({
+#             'token': token.key,
+#             'user_id': user.pk,
+#             'email': user.email
+#         })
 
 
 class RegisterApiView(viewsets.GenericViewSet):
@@ -27,9 +41,8 @@ class RegisterApiView(viewsets.GenericViewSet):
 
 class RegisterApiViewList(generics.ListAPIView, generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAdminUser,)
     serializer_class = RegisterSerializer
-
 
 
 class LoginApiView(generics.CreateAPIView):
@@ -73,7 +86,9 @@ class LogoutApiView(generics.DestroyAPIView):
                 request.user.auth_token.delete()
                 return Response({'detail': 'Foydalanuvchi muvaffaqiyatli logout qildi.'}, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': "Foydalanuvchi avtorizatsiyadan o'tkazilmaganligi sababli sessiyadan chiqarish mumkin emas."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                                    'detail': "Foydalanuvchi avtorizatsiyadan o'tkazilmaganligi sababli sessiyadan chiqarish mumkin emas."},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
