@@ -134,7 +134,7 @@ class GenerateContracts(generics.CreateAPIView):
 
 
 class DownloadOutputView(APIView):
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (permissions.AllowAny,)
 
     # authentication_classes = (TokenAuthentication,)
 
