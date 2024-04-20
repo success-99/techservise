@@ -31,7 +31,7 @@ def save_uploaded_file(upload_dir, uploaded_file):
 
 class GenerateContracts(generics.CreateAPIView):
     serializer_class = FileUploadSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
     parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.FileUploadParser)
 
     # authentication_classes = (TokenAuthentication,)
@@ -135,7 +135,7 @@ class GenerateContracts(generics.CreateAPIView):
 
 
 class DownloadOutputView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     # authentication_classes = (TokenAuthentication,)
 
