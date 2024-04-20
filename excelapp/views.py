@@ -1,4 +1,4 @@
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseRedirect, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
@@ -13,6 +13,7 @@ from .serializers import FileUploadSerializer
 import os
 from pathlib import Path
 import excel2json
+from django.urls import reverse
 
 
 def count_student():
@@ -69,14 +70,77 @@ class GenerateContracts(generics.CreateAPIView):
                         status=status.HTTP_200_OK)
 
 
+# class DownloadOutputView(APIView):
+#     permission_classes = (permissions.IsAdminUser,)
+#     # authentication_classes = (TokenAuthentication,)
+#
+#     def get(self, request):
+#         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
+#         output_dir = base_dir / f"papka_{request.user.id}"
+#         zip_file_path = base_dir / f"papka_{request.user.id}.zip"
+#
+#         # Check if OUTPUT directory exists
+#         if not output_dir.exists():
+#             return Response({'error': f'papka_{request.user.id} papkasi topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+#
+#         # Check if OUTPUT directory is empty
+#         if not os.listdir(output_dir):
+#             return Response({'error': f'yuklanadigan katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
+#
+#         # Create ZIP archive of OUTPUT directory
+#         shutil.make_archive(output_dir, 'zip', output_dir)
+#
+#         # Return ZIP archive as FileResponse
+#         try:
+#             response = FileResponse(open(zip_file_path, 'rb'), as_attachment=True)
+#             return response
+#         except FileNotFoundError:
+#             return Response({'error': 'ZIP arxiv topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+#
+
+
+
+
+# class DownloadOutputView(APIView):
+#     permission_classes = (permissions.IsAdminUser,)
+#     # authentication_classes = (TokenAuthentication,)
+#
+#     def get(self, request):
+#         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
+#         output_dir = base_dir / f"papka_{request.user.id}"
+#         zip_file_path = base_dir / f"papka_{request.user.id}.zip"
+#
+#         # Check if OUTPUT directory exists
+#         if not output_dir.exists():
+#             return Response({'error': f'papka_{request.user.id} papkasi topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+#
+#         # Check if OUTPUT directory is empty
+#         if not os.listdir(output_dir):
+#             return Response({'error': f'yuklanadigan katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
+#
+#         # Create ZIP archive of OUTPUT directory
+#         # shutil.make_archive(output_dir, 'zip', output_dir)
+#         shutil.make_archive(output_dir, 'zip', root_dir=output_dir)
+#
+#         # Return ZIP archive as FileResponse
+#         try:
+#             response = FileResponse(open(zip_file_path, 'rb'), as_attachment=True)
+#             os.remove(zip_file_path)  # ZIP faylini ochishdan so'ng o'chirilishi
+#             return response
+#         except FileNotFoundError:
+#             return Response({'error': 'ZIP arxiv topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+#
+#
+
+
 class DownloadOutputView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAdminUser,)
+
     # authentication_classes = (TokenAuthentication,)
 
     def get(self, request):
         base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
         output_dir = base_dir / f"papka_{request.user.id}"
-        zip_file_path = base_dir / f"papka_{request.user.id}.zip"
 
         # Check if OUTPUT directory exists
         if not output_dir.exists():
@@ -87,11 +151,15 @@ class DownloadOutputView(APIView):
             return Response({'error': f'yuklanadigan katalogi bo\'sh'}, status=status.HTTP_204_NO_CONTENT)
 
         # Create ZIP archive of OUTPUT directory
-        shutil.make_archive(output_dir, 'zip', output_dir)
+        zip_file_path = base_dir / f"papka_{request.user.id}.zip"
+        shutil.make_archive(output_dir, 'zip', root_dir=output_dir)
 
-        # Return ZIP archive as FileResponse
-        try:
-            response = FileResponse(open(zip_file_path, 'rb'), as_attachment=True)
-            return response
-        except FileNotFoundError:
-            return Response({'error': 'ZIP arxiv topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+        # Read the ZIP file and prepare for response
+        with open(zip_file_path, 'rb') as zip_file:
+            response = HttpResponse(zip_file.read(), content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename=papka_{request.user.id}.zip'
+
+        # Remove the ZIP file after preparing the response
+        os.remove(zip_file_path)
+
+        return response
